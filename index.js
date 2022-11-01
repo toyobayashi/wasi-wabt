@@ -1,10 +1,9 @@
 import { WASI } from '@tybys/wasm-util'
 import { Volume, createFsFromVolume } from 'memfs-browser'
 
-async function objdump (buffer, fs, args) {
-  const argv = ['wasm-objdump', ...(args || [])]
+async function start (buffer, fs, args) {
   const wasi = new WASI({
-    args: argv,
+    args,
     env: {},
     returnOnExit: true,
     preopens: {
@@ -21,32 +20,62 @@ async function objdump (buffer, fs, args) {
   const { instance } = await WebAssembly.instantiate(buffer, {
     wasi_snapshot_preview1: wasi.wasiImport
   })
-  console.log('%c%s', 'color: green; font-weight: bold', '$ ' + argv.join(' '))
+  console.log('%c%s', 'color: green; font-weight: bold', '$ ' + args.join(' '))
   const exitCode = wasi.start(instance)
   console.log('%c%s', 'color: blue', 'exit: ' + exitCode)
   return exitCode
 }
 
 async function main () {
-  const arrayBuffer = await (await fetch('./bin/wasm-objdump.wasm')).arrayBuffer()
-  const buffer = new Uint8Array(arrayBuffer)
+  const wasmObjdumpBuffer = new Uint8Array(await (await fetch('./bin/wasm-objdump.wasm')).arrayBuffer())
+  const wat2wasmBuffer = new Uint8Array(await (await fetch('./bin/wat2wasm.wasm')).arrayBuffer())
 
   const fs = createFsFromVolume(Volume.fromJSON({
     '/': null
   }))
 
-  fs.writeFileSync('/wasm-objdump.wasm', buffer)
+  const wat =
+`(module
+  (func $fib (export "fib")
+      (param $n i32) (result i32)
+    (local $tmp i32)
 
-  await objdump(buffer, fs, ['--version'])
-  await objdump(buffer, fs, ['--help'])
-  await objdump(buffer, fs, ['-h', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Type', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Import', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Table', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Memory', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Global', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'Export', '/wasm-objdump.wasm'])
-  await objdump(buffer, fs, ['-x', '-j', 'DataCount', '/wasm-objdump.wasm'])
+    local.get $n
+    i32.const 2
+    i32.lt_s
+    if
+      local.get $n
+      return
+    end
+
+    local.get $n
+    i32.const 1
+    i32.sub
+    call $fib
+    local.set $tmp
+
+    local.get $n
+    i32.const 2
+    i32.sub
+    call $fib
+    local.get $tmp
+    i32.add
+    return
+  )
+)`
+  fs.writeFileSync('/fib.wat', wat, 'utf8')
+  console.log(wat)
+
+  await start(wat2wasmBuffer, fs, ['wat2wasm', '--version'])
+  await start(wat2wasmBuffer, fs, ['wat2wasm', '-o', '/fib.wasm', '/fib.wat'])
+
+  await start(wasmObjdumpBuffer, fs, ['wasm-objdump', '--help'])
+  await start(wasmObjdumpBuffer, fs, ['wasm-objdump', '-hx', '/fib.wasm'])
+
+  const fibwasmBuffer = fs.readFileSync('/fib.wasm')
+  const fibwasmInstance = await WebAssembly.instantiate(fibwasmBuffer)
+  const n = 10
+  console.log('fib(%d) => %d', n, fibwasmInstance.instance.exports.fib(n))
 }
 
 main()

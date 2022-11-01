@@ -5,3 +5,4 @@ node_modules
 package-lock.json
 /bin/*
 !/bin/wasm-objdump.wasm
+!/bin/wat2wasm.wasm
