@@ -1,0 +1,60 @@
+--- ./deps/wabt/CMakeLists.txt	2022-11-01 16:38:26.116064817 +0800
++++ ./deps/wabt/CMakeLists2.txt	2022-11-01 16:37:25.146065714 +0800
+@@ -226,6 +226,8 @@
+   endif ()
+ endif ()
+ 
++set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
++
+ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${WABT_SOURCE_DIR}/cmake)
+ 
+ add_custom_target(everything)
+@@ -357,27 +359,27 @@
+   )
+ endif ()
+ 
+-IF (NOT WIN32)
+-  add_library(wasm-rt-impl STATIC wasm2c/wasm-rt-impl.c wasm2c/wasm-rt-impl.h)
+-  add_library(wabt::wasm-rt-impl ALIAS wasm-rt-impl)
+-  if (WABT_BIG_ENDIAN)
+-    target_compile_definitions(wasm-rt-impl PUBLIC WABT_BIG_ENDIAN=1)
+-  endif ()
+-
+-  if (WABT_INSTALL_RULES)
+-    install(
+-      TARGETS wasm-rt-impl
+-      EXPORT wabt-targets
+-      COMPONENT wabt-development
+-      INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+-    )
+-    install(
+-      FILES "wasm2c/wasm-rt-impl.h" "wasm2c/wasm-rt.h"
+-      TYPE INCLUDE
+-      COMPONENT wabt-development
+-    )
+-  endif ()
+-endif ()
++# IF (NOT WIN32)
++#   add_library(wasm-rt-impl STATIC wasm2c/wasm-rt-impl.c wasm2c/wasm-rt-impl.h)
++#   add_library(wabt::wasm-rt-impl ALIAS wasm-rt-impl)
++#   if (WABT_BIG_ENDIAN)
++#     target_compile_definitions(wasm-rt-impl PUBLIC WABT_BIG_ENDIAN=1)
++#   endif ()
++
++#   if (WABT_INSTALL_RULES)
++#     install(
++#       TARGETS wasm-rt-impl
++#       EXPORT wabt-targets
++#       COMPONENT wabt-development
++#       INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
++#     )
++#     install(
++#       FILES "wasm2c/wasm-rt-impl.h" "wasm2c/wasm-rt.h"
++#       TYPE INCLUDE
++#       COMPONENT wabt-development
++#     )
++#   endif ()
++# endif ()
+ 
+ if (BUILD_FUZZ_TOOLS)
+   set(FUZZ_FLAGS "-fsanitize=fuzzer,address")

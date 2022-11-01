@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASI WABT</title>
+</head>
+<body>
+  F12 Open DevTools Console to see output
+  <script type="importmap">
+    {
+      "imports": {
+        "@tybys/wasm-util": "https://cdn.jsdelivr.net/npm/@tybys/wasm-util@0.1.0/dist/wasm-util.esm.min.js",
+        "memfs-browser": "https://cdn.jsdelivr.net/npm/memfs-browser@3.4.10900/dist/memfs.esm.min.js"
+      }
+    }
+  </script>
+  <script type="module" src="./index.js"></script>
+</body>
+</html>
