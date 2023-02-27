@@ -11,10 +11,7 @@ async function start (buffer, fs, args) {
     },
     // print: (text) => console.log(text),
     // printErr: (text) => console.error(text),
-    filesystem: {
-      type: 'memfs',
-      fs
-    }
+    fs
   })
 
   const { instance } = await WebAssembly.instantiate(buffer, {
